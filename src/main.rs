@@ -9,7 +9,7 @@ struct ModuleDynamicDesc {
 #[derive(serde::Deserialize, serde::Serialize, Debug, Default, Clone)]
 struct ModuleDynamic {
     #[serde(default)]
-    desc: ModuleDynamicDesc,
+    desc: Option<ModuleDynamicDesc>,
 }
 #[derive(serde::Deserialize, serde::Serialize, Debug, Default, Clone)]
 struct Modules {
