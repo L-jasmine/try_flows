@@ -3,14 +3,17 @@ use lambda_flows::{request_received, send_response};
 
 #[derive(serde::Deserialize, serde::Serialize, Debug, Default, Clone)]
 struct ModuleDynamicDesc {
+    #[serde(default)]
     text: String,
 }
 #[derive(serde::Deserialize, serde::Serialize, Debug, Default, Clone)]
 struct ModuleDynamic {
+    #[serde(default)]
     desc: ModuleDynamicDesc,
 }
 #[derive(serde::Deserialize, serde::Serialize, Debug, Default, Clone)]
 struct Modules {
+    #[serde(default)]
     module_dynamic: ModuleDynamic,
 }
 
@@ -19,6 +22,7 @@ struct Item {
     id_str: String,
     #[serde(rename = "type")]
     item_type: String,
+    #[serde(default)]
     modules: Modules,
 }
 
