@@ -38,3 +38,5 @@ pub extern "C" fn run() {
 //   -H 'sec-fetch-site: same-site' \
 //   -H 'user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.57' \
 //   --compressed
+
+fn main() {}
