@@ -115,6 +115,8 @@ version = "0.1.0"
 dependencies = [
  "http_req_wasi",
  "lambda-flows",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

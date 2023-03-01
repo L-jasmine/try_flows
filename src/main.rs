@@ -1,6 +1,40 @@
 use http_req::uri::Uri;
 use lambda_flows::{request_received, send_response};
 
+#[derive(serde::Deserialize, serde::Serialize, Debug, Default)]
+struct ModuleDynamicDesc {
+    text: String,
+}
+#[derive(serde::Deserialize, serde::Serialize, Debug, Default)]
+struct ModuleDynamic {
+    desc: ModuleDynamicDesc,
+}
+#[derive(serde::Deserialize, serde::Serialize, Debug, Default)]
+struct Modules {
+    module_dynamic: ModuleDynamic,
+}
+
+#[derive(serde::Deserialize, serde::Serialize, Debug, Default)]
+struct Item {
+    id_str: String,
+    #[serde(rename = "type")]
+    item_type: String,
+    modules: Modules,
+}
+
+#[derive(serde::Deserialize, serde::Serialize, Debug, Default)]
+struct Data {
+    #[serde(default)]
+    items: Vec<Item>,
+}
+
+#[derive(serde::Deserialize, serde::Serialize, Debug, Default)]
+struct Return {
+    code: i32,
+    message: String,
+    data: Data,
+}
+
 #[no_mangle]
 pub extern "C" fn run() {
     request_received(|_qry, _body| {
@@ -15,11 +49,23 @@ pub extern "C" fn run() {
             .send(&mut writer)
             .unwrap();
 
-        send_response(
-            req.status_code().into(),
-            vec![(String::from("content-type"), String::from("text/html"))],
-            writer,
-        );
+        match serde_json::from_slice::<Return>(&writer) {
+            Ok(r) => {
+                let item = r.data.items.first().unwrap();
+                send_response(
+                    req.status_code().into(),
+                    vec![(String::from("content-type"), String::from("text/html"))],
+                    item.modules.module_dynamic.desc.text.clone().into_bytes(),
+                );
+            }
+            Err(e) => {
+                send_response(
+                    500,
+                    vec![(String::from("content-type"), String::from("text/html"))],
+                    format!("{:?}", e).into_bytes(),
+                );
+            }
+        }
     });
 }
 
