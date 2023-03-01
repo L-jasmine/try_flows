@@ -1,20 +1,20 @@
 use http_req::uri::Uri;
 use lambda_flows::{request_received, send_response};
 
-#[derive(serde::Deserialize, serde::Serialize, Debug, Default)]
+#[derive(serde::Deserialize, serde::Serialize, Debug, Default, Clone)]
 struct ModuleDynamicDesc {
     text: String,
 }
-#[derive(serde::Deserialize, serde::Serialize, Debug, Default)]
+#[derive(serde::Deserialize, serde::Serialize, Debug, Default, Clone)]
 struct ModuleDynamic {
     desc: ModuleDynamicDesc,
 }
-#[derive(serde::Deserialize, serde::Serialize, Debug, Default)]
+#[derive(serde::Deserialize, serde::Serialize, Debug, Default, Clone)]
 struct Modules {
     module_dynamic: ModuleDynamic,
 }
 
-#[derive(serde::Deserialize, serde::Serialize, Debug, Default)]
+#[derive(serde::Deserialize, serde::Serialize, Debug, Default, Clone)]
 struct Item {
     id_str: String,
     #[serde(rename = "type")]
@@ -41,7 +41,7 @@ pub extern "C" fn run() {
         let mut writer = Vec::new();
 
         let uri = Uri::try_from("https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space?offset=&host_mid=401742377&timezone_offset=-480&features=itemOpusStyle").unwrap();
-        let req = http_req::request::Request::new(&uri)
+        let _ = http_req::request::Request::new(&uri)
             .header("accept", "application/json, text/plain, */*")
             .header("authority", "api.bilibili.com")
             .header("origin", "https://space.bilibili.com")
@@ -51,12 +51,27 @@ pub extern "C" fn run() {
 
         match serde_json::from_slice::<Return>(&writer) {
             Ok(r) => {
-                let item = r.data.items.first().unwrap();
-                send_response(
-                    req.status_code().into(),
-                    vec![(String::from("content-type"), String::from("text/html"))],
-                    item.modules.module_dynamic.desc.text.clone().into_bytes(),
-                );
+                let item = r.data.items.iter().find(|item| {
+                    if item.item_type == "DYNAMIC_TYPE_DRAW" {
+                        true
+                    } else {
+                        false
+                    }
+                });
+
+                if let Some(item) = item {
+                    send_response(
+                        200,
+                        vec![(String::from("content-type"), String::from("text/html"))],
+                        format!("{:?}", item).into_bytes(),
+                    );
+                } else {
+                    send_response(
+                        500,
+                        vec![(String::from("content-type"), String::from("text/html"))],
+                        format!("No items").into_bytes(),
+                    );
+                }
             }
             Err(e) => {
                 send_response(
