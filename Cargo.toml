@@ -9,4 +9,5 @@ crate-type = ["lib"]
 
 
 [dependencies]
+http_req_wasi = "0.10.2"
 lambda-flows = "0.2.1"
