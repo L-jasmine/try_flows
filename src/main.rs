@@ -2,9 +2,19 @@ use http_req::uri::Uri;
 use lambda_flows::{request_received, send_response};
 
 #[derive(serde::Deserialize, serde::Serialize, Debug, Default, Clone)]
+struct RichTextNode {
+    orig_text: String,
+    text: String,
+    #[serde(rename = "type")]
+    node_type: String,
+}
+
+#[derive(serde::Deserialize, serde::Serialize, Debug, Default, Clone)]
 struct ModuleDynamicDesc {
     #[serde(default)]
     text: String,
+    #[serde(default)]
+    rich_text_nodes: Vec<RichTextNode>,
 }
 #[derive(serde::Deserialize, serde::Serialize, Debug, Default, Clone)]
 struct ModuleDynamic {
@@ -57,7 +67,14 @@ pub extern "C" fn run() {
             Ok(r) => {
                 let item = r.data.items.iter().find(|item| {
                     if item.item_type == "DYNAMIC_TYPE_DRAW" {
-                        true
+                        if let Some(desc) = &item.modules.module_dynamic.desc {
+                            desc.rich_text_nodes
+                                .first()
+                                .map(|node| node.node_type == "RICH_TEXT_NODE_TYPE_LOTTERY")
+                                .unwrap_or(false)
+                        } else {
+                            false
+                        }
                     } else {
                         false
                     }
@@ -73,7 +90,7 @@ pub extern "C" fn run() {
                     send_response(
                         500,
                         vec![(String::from("content-type"), String::from("text/html"))],
-                        format!("No items").into_bytes(),
+                        format!("Item Not Found").into_bytes(),
                     );
                 }
             }
