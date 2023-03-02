@@ -21,10 +21,17 @@ struct ModuleDynamic {
     #[serde(default)]
     desc: Option<ModuleDynamicDesc>,
 }
+
+#[derive(serde::Deserialize, serde::Serialize, Debug, Default, Clone)]
+struct ModuleAuthor {
+    pub_ts: chrono::DateTime<chrono::Utc>,
+}
+
 #[derive(serde::Deserialize, serde::Serialize, Debug, Default, Clone)]
 struct Modules {
     #[serde(default)]
     module_dynamic: ModuleDynamic,
+    module_author: ModuleAuthor,
 }
 
 #[derive(serde::Deserialize, serde::Serialize, Debug, Default, Clone)]
@@ -84,7 +91,7 @@ pub extern "C" fn run() {
                     send_response(
                         200,
                         vec![(String::from("content-type"), String::from("text/html"))],
-                        format!("{:?}", item).into_bytes(),
+                        format!("{}", item.modules.module_author.pub_ts).into_bytes(),
                     );
                 } else {
                     send_response(
